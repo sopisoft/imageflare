@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { cache } from "hono/cache";
 import { z } from "zod";
 import { get_svg_url as get_fluent_url } from "./fluent";
 import { get_svg_url as get_noto_svg_url } from "./noto";
@@ -7,6 +8,14 @@ import { to_png } from "./to_png";
 import { get_svg_url as get_twemoji_svg_url } from "./twemoji";
 
 const app = new Hono();
+
+app.get(
+  "*",
+  cache({
+    cacheName: "emoji",
+    cacheControl: `max-age=${60 * 60 * 24 * 30}`,
+  })
+);
 
 const paramSchema = z.object({
   emoji: z.string().regex(/.+\.(png|svg)/),
@@ -46,19 +55,23 @@ app.get(
     const { size, provider, fluent_style, fluent_skin } = c.req.valid("query");
 
     const emoji_size = size ? Number.parseInt(size) : 16;
-    let svg_str = "";
 
-    async function svg_to_str(url: string) {
-      return await fetch(url)
-        .catch(() => {
-          return c.text("Error fetching svg", 500);
-        })
-        .then((res) => {
-          const svg = res.text();
-          console.log(svg);
-          return svg;
-        });
+    async function svg_to_str(url: string): Promise<string | Error> {
+      const cache_key = new Request(url);
+      const cache = caches.default;
+      const cached = await cache.match(cache_key);
+      if (cached) return await cached.text();
+
+      const response = await fetch(url);
+      if (!response.ok) return new Error("Error fetching svg");
+
+      const svg_str = await response.text();
+
+      await cache.put(cache_key, new Response(svg_str, response));
+      return svg_str;
     }
+
+    let svg_str: string | Error = "";
 
     switch (provider) {
       case "twemoji": {
@@ -105,17 +118,19 @@ app.get(
       default: {
         const svg_url = get_twemoji_svg_url(emoji_content);
         if (svg_url instanceof Error) return c.text("Emoji not found", 404);
-
         svg_str = await svg_to_str(svg_url);
+        break;
       }
     }
 
-    if (svg_str.length === 0) return c.text("Error fetching svg", 500);
+    if (svg_str instanceof Error || svg_str.length === 0)
+      return c.text("Error fetching svg", 500);
 
     switch (ext) {
       case ".png": {
         const png = await to_png(svg_str, emoji_size);
         if (png instanceof Error) return c.text("Error converting to png", 500);
+
         return c.newResponse(png, 200, {
           "Content-Type": "image/png",
         });
@@ -124,6 +139,9 @@ app.get(
         return c.text(svg_str, 200, {
           "Content-Type": "image/svg+xml",
         });
+      }
+      default: {
+        return c.text("Invalid file extension", 400);
       }
     }
   }
