@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
-import { get_svg_url as get_fluent_svg_url } from "./fluent";
+import { get_svg_url as get_fluent_url } from "./fluent";
 import { get_svg_url as get_noto_svg_url } from "./noto";
 import { to_png } from "./to_png";
 import { get_svg_url as get_twemoji_svg_url } from "./twemoji";
@@ -75,7 +75,24 @@ app.get(
         break;
       }
       case "fluent": {
-        const svg_url = get_fluent_svg_url(
+        if (fluent_style === "3d") {
+          if (ext === ".svg") return c.text("No svg for 3d style", 400);
+
+          const png_url = get_fluent_url(
+            emoji_content,
+            fluent_style,
+            fluent_skin
+          );
+
+          if (png_url instanceof Error) return c.text("Emoji not found", 404);
+
+          const png = await fetch(png_url).then((res) => res.arrayBuffer());
+          return c.newResponse(png, 200, {
+            "Content-Type": "image/png",
+          });
+        }
+
+        const svg_url = get_fluent_url(
           emoji_content,
           fluent_style,
           fluent_skin
