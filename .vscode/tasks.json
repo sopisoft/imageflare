@@ -1,0 +1,30 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "bun",
+			"script": "bun run dev",
+			"problemMatcher": [],
+			"label": "bun: dev"
+		},
+		{
+			"type": "bun",
+			"script": "bun run lint",
+			"problemMatcher": [],
+			"label": "bun: lint"
+		},
+		{
+			"type": "bun",
+			"script": "bun run format",
+			"problemMatcher": [],
+			"label": "bun: format"
+		},
+		{
+			"type": "bun",
+			"script": "bun run deploy",
+			"problemMatcher": [],
+			"group": "build",
+			"label": "bun: deploy"
+		}
+	]
+}
