@@ -35,6 +35,11 @@ app.get(
   "/v1/:emoji{.+\\.png|.+\\.svg}",
   zValidator("query", querySchema),
   async (c) => {
+    const cache_key = new Request(c.req.url);
+    const cache = caches.default;
+    const cached = await cache.match(cache_key);
+    if (cached) return cached;
+
     const { emoji } = c.req.param();
     try {
       paramSchema.parse({ emoji });
@@ -131,14 +136,24 @@ app.get(
         const png = await to_png(svg_str, emoji_size);
         if (png instanceof Error) return c.text("Error converting to png", 500);
 
-        return c.newResponse(png, 200, {
-          "Content-Type": "image/png",
+        const response = new Response(png, {
+          headers: {
+            "Content-Type": "image/png",
+          },
         });
+        cache.put(cache_key, response.clone());
+
+        return response;
       }
       case ".svg": {
-        return c.text(svg_str, 200, {
-          "Content-Type": "image/svg+xml",
+        const response = new Response(svg_str, {
+          headers: {
+            "Content-Type": "image/svg+xml",
+          },
         });
+        cache.put(cache_key, response.clone());
+
+        return response;
       }
       default: {
         return c.text("Invalid file extension", 400);
