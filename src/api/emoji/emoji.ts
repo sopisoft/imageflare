@@ -56,7 +56,14 @@ app.get(
       return c.text("Invalid emoji", 400);
     }
 
-    const ext = c.req.param("emoji").slice(-4);
+    const ext = c.req.param("emoji").slice(-4) as ".png" | ".svg";
+    const ext_schema = z.enum([".png", ".svg"]);
+    try {
+      ext_schema.parse(ext);
+    } catch (e) {
+      return c.text("Invalid file extension", 400);
+    }
+
     const { size, provider, fluent_style, fluent_skin } = c.req.valid("query");
 
     const emoji_size = size ? Number.parseInt(size) : 16;
@@ -99,7 +106,8 @@ app.get(
           const png_url = get_fluent_url(
             emoji_content,
             fluent_style,
-            fluent_skin
+            fluent_skin,
+            "png"
           );
 
           if (png_url instanceof Error) return c.text("Emoji not found", 404);
@@ -113,7 +121,8 @@ app.get(
         const svg_url = get_fluent_url(
           emoji_content,
           fluent_style,
-          fluent_skin
+          fluent_skin,
+          "svg"
         );
         if (svg_url instanceof Error) return c.text("Emoji not found", 404);
 

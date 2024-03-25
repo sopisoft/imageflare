@@ -27,26 +27,35 @@ export function get_svg_url(
     | "medium_light"
     | "medium"
     | "medium_dark"
-    | "dark"
+    | "dark",
+  ext: "svg" | "png" = "svg"
 ) {
   const data = metadata[emoji];
   if (!data) return new Error("Emoji not found");
 
   const style = formats.style[_style ?? "color"] as Style;
 
-  const base =
-    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/";
+  const base = "https://raw.githubusercontent.com/";
+  const assets = "microsoft/fluentui-emoji/main/assets/";
+
+  let f = `${data.cldr.toLowerCase()}_${style.toLowerCase()}`;
 
   if (data.hasSkinTones) {
     const skin = formats.skin[_skin ?? "default"] as SkinTone;
-    const url = data.skinTones?.[skin]?.[style];
-    if (!url) return new Error("Emoji not found");
+    f += `_${skin.toLowerCase()}.${ext}`;
+    f = f.replaceAll(" ", "_");
+    const path = `${data.cldr}/${skin}/${style}/${f}`;
 
-    return base + url;
+    const url = base + assets + path;
+    console.log(url);
+    return url;
   }
 
-  const url = data.styles?.[style];
-  if (!url) return new Error("Emoji not found");
-  console.log(base + url);
-  return base + url;
+  f += `.${ext}`;
+  f = f.replaceAll(" ", "_");
+  const path = `${data.cldr}/${style}/${f}`;
+
+  const url = base + assets + path;
+  console.log(url);
+  return url;
 }
