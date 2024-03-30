@@ -1,4 +1,4 @@
-# Imageflare
+# Emoji to Image
 
 ## Commands
 
