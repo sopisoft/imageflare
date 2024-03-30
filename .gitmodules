@@ -1,3 +1,3 @@
-[submodule "src/submodules/fluent-emoji"]
-	path = src/submodules/fluent-emoji
+[submodule "packages/emoji/src/submodules/fluent-emoji"]
+	path = packages/emoji/src/submodules/fluent-emoji
 	url = https://github.com/microsoft/fluentui-emoji

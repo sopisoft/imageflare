@@ -1,0 +1,15 @@
+{
+  "name": "optimizer",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bunx wrangler dev",
+    "format": "bunx @biomejs/biome format --write .",
+    "lint": "bunx @biomejs/biome check --apply .",
+    "deploy": "bunx wrangler deploy"
+  },
+  "dependencies": {
+    "wasm-image-optimization": "^1.0.1"
+  }
+}

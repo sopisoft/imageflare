@@ -55,7 +55,5 @@ export function get_svg_url(
   f = f.replaceAll(" ", "_");
   const path = `${data.cldr}/${style}/${f}`;
 
-  const url = base + assets + path;
-  console.log(url);
-  return url;
+  return base + assets + path;
 }

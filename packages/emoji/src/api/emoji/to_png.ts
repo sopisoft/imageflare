@@ -7,7 +7,7 @@ export async function to_png(
   svg: string,
   size: number
 ): Promise<ArrayBuffer | Error> {
-  if (!initialized)
+  if (!initialized) {
     await initialize(wasm)
       .then(() => {
         initialized = true;
@@ -19,6 +19,7 @@ export async function to_png(
         )
           return e;
       });
+  }
 
   const convertOptions: ConvertOptions = {
     width: size,

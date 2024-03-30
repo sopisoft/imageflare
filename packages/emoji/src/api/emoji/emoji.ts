@@ -22,7 +22,7 @@ const paramSchema = z.object({
 });
 
 const querySchema = z.object({
-  size: z.string().regex(/^\d+$/).optional(),
+  size: z.coerce.number().min(1).optional(),
   provider: z.enum(["twemoji", "noto", "fluent"]).optional(),
   fluent_style: z.enum(["3d", "color", "flat", "high_contrast"]).optional(),
   fluent_skin: z
@@ -65,10 +65,11 @@ app.get(
     }
 
     const { size, provider, fluent_style, fluent_skin } = c.req.valid("query");
-
-    const emoji_size = size ? Number.parseInt(size) : 16;
+    const emoji_size = size || 16;
 
     async function svg_to_str(url: string): Promise<string | Error> {
+      console.log(url);
+
       const cache_key = new Request(url);
       const cache = caches.default;
       const cached = await cache.match(cache_key);
@@ -78,8 +79,8 @@ app.get(
       if (!response.ok) return new Error("Error fetching svg");
 
       const svg_str = await response.text();
+      cache.put(cache_key, new Response(svg_str, response));
 
-      await cache.put(cache_key, new Response(svg_str, response));
       return svg_str;
     }
 

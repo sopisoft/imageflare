@@ -1,0 +1,16 @@
+{
+  "name": "emoji",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bunx wrangler dev",
+    "format": "bunx @biomejs/biome format --write .",
+    "lint": "bunx @biomejs/biome check --apply .",
+    "deploy": "bunx wrangler deploy"
+  },
+  "dependencies": {
+    "svg2png-wasm": "^1.4.1",
+    "twemoji-parser": "^14.0.0"
+  }
+}
